@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Airfare Price Index - India</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <!-- =========================
+         SIDEBAR
+    ========================== -->
+
+    <aside class="sidebar">
+
+        <div class="logo">
+            <div class="logo-icon">✈</div>
+
+            <div>
+                <h2>Airfare</h2>
+                <p>Price Index</p>
+            </div>
+        </div>
+
+        <nav>
+
+            <button class="nav-item active" data-page="dashboard">
+                <span>▦</span>
+                Dashboard
+            </button>
+
+            <button class="nav-item" data-page="price-index">
+                <span>📈</span>
+                Price Index
+            </button>
+
+            <button class="nav-item" data-page="search">
+                <span>🔍</span>
+                Search Fares
+            </button>
+
+            <button class="nav-item" data-page="routes">
+                <span>⇄</span>
+                Route Comparison
+            </button>
+
+            <button class="nav-item" data-page="trends">
+                <span>⌁</span>
+                Trends & Analysis
+            </button>
+
+            <button class="nav-item" data-page="reports">
+                <span>▤</span>
+                Reports
+            </button>
+
+            <button class="nav-item" data-page="about">
+                <span>ⓘ</span>
+                About Project
+            </button>
+
+        </nav>
+
+        <div class="sidebar-bottom">
+
+            <p>Airfare Price Index</p>
+
+            <small>
+                Real-time airfare analytics
+            </small>
+
+        </div>
+
+    </aside>
+
+
+    <!-- =========================
+         MAIN CONTENT
+    ========================== -->
+
+    <main class="main">
+
+        <!-- TOP HEADER -->
+
+        <header class="topbar">
+
+            <div>
+
+                <h1>Airfare Price Index – India</h1>
+
+                <p>
+                    Real-time domestic airfare monitoring
+                </p>
+
+            </div>
+
+            <div class="update-info">
+
+                <span class="status-dot"></span>
+
+                <div>
+                    <small>Last Updated</small>
+
+                    <strong id="lastUpdated">
+                        02 Sep 2026, 10:30 PM
+                    </strong>
+                </div>
+
+                <button id="refreshBtn" class="refresh-btn">
+                    ↻
+                </button>
+
+            </div>
+
+        </header>
+
+
+        <!-- =========================
+             DASHBOARD PAGE
+        ========================== -->
+
+        <section id="dashboard" class="page active-page">
+
+
+            <!-- SEARCH FILTER -->
+
+            <div class="card search-card">
+
+                <div class="section-title">
+
+                    <div>
+                        <h2>Search & Filters</h2>
+
+                        <p>
+                            Find current airfare prices for a route
+                        </p>
+                    </div>
+
+                </div>
+
+
+                <div class="filters">
+
+                    <div class="input-group">
+
+                        <label for="fromCity">
+                            From
+                        </label>
+
+                        <select id="fromCity">
+
+                            <option value="DEL">
+                                Delhi (DEL)
+                            </option>
+
+                            <option value="BOM">
+                                Mumbai (BOM)
+                            </option>
+
+                            <option value="BLR">
+                                Bengaluru (BLR)
+                            </option>
+
+                            <option value="CCU">
+                                Kolkata (CCU)
+                            </option>
+
+                            <option value="MAA">
+                                Chennai (MAA)
+                            </option>
+
+                            <option value="HYD">
+                                Hyderabad (HYD)
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <div class="swap-container">
+
+                        <button id="swapBtn">
+                            ⇄
+                        </button>
+
+                    </div>
+
+
+                    <div class="input-group">
+
+                        <label for="toCity">
+                            To
+                        </label>
+
+                        <select id="toCity">
+
+                            <option value="BOM">
+                                Mumbai (BOM)
+                            </option>
+
+                            <option value="DEL">
+                                Delhi (DEL)
+                            </option>
+
+                            <option value="BLR">
+                                Bengaluru (BLR)
+                            </option>
+
+                            <option value="CCU">
+                                Kolkata (CCU)
+                            </option>
+
+                            <option value="MAA">
+                                Chennai (MAA)
+                            </option>
+
+                            <option value="HYD">
+                                Hyderabad (HYD)
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <div class="input-group">
+
+                        <label for="journeyDate">
+                            Journey Date
+                        </label>
+
+                        <input
+                            type="date"
+                            id="journeyDate"
+                        >
+
+                    </div>
+
+
+                    <div class="input-group">
+
+                        <label for="flightClass">
+                            Class
+                        </label>
+
+                        <select id="flightClass">
+
+                            <option>
+                                Economy
+                            </option>
+
+                            <option>
+                                Premium Economy
+                            </option>
+
+                            <option>
+                                Business
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <button id="searchBtn" class="primary-btn">
+
+                        🔍 Search Fares
+
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <!-- =========================
+                 KPI CARDS
+            ========================== -->
+
+            <div class="kpi-grid">
+
+
+                <div class="kpi-card">
+
+                    <div class="kpi-header">
+
+                        <span>
+                            Airfare Price Index
+                        </span>
+
+                        <span class="info">
+                            ⓘ
+                        </span>
+
+                    </div>
+
+                    <div class="kpi-value" id="overallIndex">
+                        112.45
+                    </div>
+
+                    <div class="kpi-change positive">
+                        ▲ 6.21%
+                        <span>vs last month</span>
+                    </div>
+
+                    <div class="mini-chart">
+                        ▁▂▃▂▄▅▆▅▇
+                    </div>
+
+                </div>
+
+
+                <div class="kpi-card">
+
+                    <div class="kpi-header">
+
+                        <span>
+                            Domestic Index
+                        </span>
+
+                        <span class="info">
+                            ⓘ
+                        </span>
+
+                    </div>
+
+                    <div class="kpi-value" id="domesticIndex">
+                        110.32
+                    </div>
+
+                    <div class="kpi-change positive">
+                        ▲ 5.75%
+                        <span>vs last month</span>
+                    </div>
+
+                    <div class="mini-chart green">
+                        ▁▂▃▄▃▅▆▇
+                    </div>
+
+                </div>
+
+
+                <div class="kpi-card">
+
+                    <div class="kpi-header">
+
+                        <span>
+                            International Index
+                        </span>
+
+                        <span class="info">
+                            ⓘ
+                        </span>
+
+                    </div>
+
+                    <div class="kpi-value" id="internationalIndex">
+                        118.91
+                    </div>
+
+                    <div class="kpi-change positive">
+                        ▲ 7.48%
+                        <span>vs last month</span>
+                    </div>
+
+                    <div class="mini-chart purple">
+                        ▁▃▂▅▄▆▅▇
+                    </div>
+
+                </div>
+
+
+                <div class="kpi-card">
+
+                    <div class="kpi-header">
+
+                        <span>
+                            Routes Tracked
+                        </span>
+
+                        <span class="plane-big">
+                            ✈
+                        </span>
+
+                    </div>
+
+                    <div class="kpi-value">
+                        250+
+                    </div>
+
+                    <div class="kpi-subtext">
+                        Across India
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- =========================
+                 CHART SECTION
+            ========================== -->
+
+            <div class="charts-grid">
+
+
+                <!-- PRICE TREND -->
+
+                <div class="card chart-card">
+
+                    <div class="chart-header">
+
+                        <div>
+
+                            <h2>
+                                Airfare Price Trend
+                            </h2>
+
+                            <p>
+                                Average airfare movement
+                            </p>
+
+                        </div>
+
+                        <select id="trendPeriod">
+
+                            <option>
+                                6 Months
+                            </option>
+
+                            <option>
+                                1 Year
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                    <canvas
+                        id="priceChart"
+                        width="700"
+                        height="300">
+                    </canvas>
+
+                </div>
+
+
+                <!-- INDEX COMPARISON -->
+
+                <div class="card chart-card">
+
+                    <div class="chart-header">
+
+                        <div>
+
+                            <h2>
+                                Index Comparison
+                            </h2>
+
+                            <p>
+                                Domestic vs International
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                    <canvas
+                        id="indexChart"
+                        width="700"
+                        height="300">
+                    </canvas>
+
+                </div>
+
+            </div>
+
+
+            <!-- =========================
+                 TABLE + MAP
+            ========================== -->
+
+            <div class="bottom-grid">
+
+
+                <!-- TABLE -->
+
+                <div class="card table-card">
+
+                    <div class="chart-header">
+
+                        <div>
+
+                            <h2>
+                                Latest Airfare Prices
+                            </h2>
+
+                            <p id="routeTitle">
+                                Delhi → Mumbai
+                            </p>
+
+                        </div>
+
+                        <button
+                            class="text-btn"
+                            id="viewAllBtn">
+                            View All →
+                        </button>
+
+                    </div>
+
+
+                    <div class="table-container">
+
+                        <table>
+
+                            <thead>
+
+                                <tr>
+
+                                    <th>Airline</th>
+
+                                    <th>Route</th>
+
+                                    <th>Fare</th>
+
+                                    <th>Source</th>
+
+                                    <th>Captured</th>
+
+                                </tr>
+
+                            </thead>
+
+                            <tbody id="fareTable">
+
+                                <!-- JavaScript will insert data -->
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                </div>
+
+
+                <!-- INDIA ANALYSIS -->
+
+                <div class="card india-card">
+
+                    <div class="chart-header">
+
+                        <div>
+
+                            <h2>
+                                India Price Analysis
+                            </h2>
+
+                            <p>
+                                Average fare by region
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="india-map">
+
+                        <div class="india-shape">
+
+                            🇮🇳
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="legend">
+
+                        <div>
+                            <span class="legend-box low"></span>
+                            &lt; ₹3,000
+                        </div>
+
+                        <div>
+                            <span class="legend-box medium"></span>
+                            ₹3,000 – ₹5,000
+                        </div>
+
+                        <div>
+                            <span class="legend-box high"></span>
+                            ₹5,000 – ₹7,000
+                        </div>
+
+                        <div>
+                            <span class="legend-box very-high"></span>
+                            &gt; ₹7,000
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- =========================
+                 DATA INFORMATION
+            ========================== -->
+
+            <div class="info-strip">
+
+                <div>
+
+                    <span class="info-icon">
+                        🗄
+                    </span>
+
+                    <div>
+
+                        <strong>
+                            Data Sources
+                        </strong>
+
+                        <p>
+                            Airlines & Online Travel Agencies
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div>
+
+                    <span class="info-icon">
+                        ◷
+                    </span>
+
+                    <div>
+
+                        <strong>
+                            Update Frequency
+                        </strong>
+
+                        <p>
+                            Every 6 Hours
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div>
+
+                    <span class="info-icon">
+                        ✓
+                    </span>
+
+                    <div>
+
+                        <strong>
+                            Data Points
+                        </strong>
+
+                        <p>
+                            10,000+ fares collected daily
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div>
+
+                    <span class="info-icon">
+                        ↓
+                    </span>
+
+                    <div>
+
+                        <strong>
+                            Export Data
+                        </strong>
+
+                        <button id="downloadBtn">
+                            Download CSV Report
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- =========================
+             OTHER PAGES
+        ========================== -->
+
+        <section
+            id="price-index"
+            class="page">
+
+            <div class="card page-card">
+
+                <h2>Airfare Price Index</h2>
+
+                <p>
+                    Monitor the calculated airfare price index
+                    across different periods and routes.
+                </p>
+
+                <div class="large-index">
+                    112.45
+                </div>
+
+                <p class="positive">
+                    ▲ 6.21% compared with previous month
+                </p>
+
+            </div>
+
+        </section>
+
+
+        <section
+            id="search"
+            class="page">
+
+            <div class="card page-card">
+
+                <h2>Search Fares</h2>
+
+                <p>
+                    Search current airfare prices by route,
+                    date and travel class.
+                </p>
+
+                <button
+                    class="primary-btn"
+                    onclick="goToDashboard()">
+                    Open Search
+                </button>
+
+            </div>
+
+        </section>
+
+
+        <section
+            id="routes"
+            class="page">
+
+            <div class="card page-card">
+
+                <h2>Route Comparison</h2>
+
+                <p>
+                    Compare average airfare prices across
+                    major Indian routes.
+                </p>
+
+                <div id="routeComparison">
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <section
+            id="trends"
+            class="page">
+
+            <div class="card page-card">
+
+                <h2>Trends & Analysis</h2>
+
+                <p>
+                    Analyze historical airfare movements
+                    and price index trends.
+                </p>
+
+                <canvas
+                    id="trendPageChart"
+                    width="900"
+                    height="350">
+                </canvas>
+
+            </div>
+
+        </section>
+
+
+        <section
+            id="reports"
+            class="page">
+
+            <div class="card page-card">
+
+                <h2>Reports</h2>
+
+                <p>
+                    Generate and download airfare datasets.
+                </p>
+
+                <button
+                    class="primary-btn"
+                    id="reportBtn">
+                    Download Report
+                </button>
+
+            </div>
+
+        </section>
+
+
+        <section
+            id="about"
+            class="page">
+
+            <div class="card page-card">
+
+                <h2>
+                    About Airfare Price Index
+                </h2>
+
+                <p>
+
+                    The project aims to develop a real-time
+                    airfare price index for India using
+                    automated collection of airfare data
+                    from airline and online travel platforms.
+
+                </p>
+
+                <h3>
+                    Project Pipeline
+                </h3>
+
+                <div class="pipeline">
+
+                    <span>Web Scraping</span>
+                    →
+                    <span>Data Cleaning</span>
+                    →
+                    <span>Price Analysis</span>
+                    →
+                    <span>Price Index</span>
+                    →
+                    <span>Dashboard</span>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- FOOTER -->
+
+        <footer>
+
+            <p>
+                © 2026 Airfare Price Index – India
+            </p>
+
+            <p>
+                Developed for real-time airfare analysis
+            </p>
+
+        </footer>
+
+    </main>
+
+
+    <script src="script.js"></script>
+
+</body>
+
+</html>

@@ -1,0 +1,11 @@
+Airline,From,To,JourneyDate,Price,Source
+IndiGo,DEL,BOM,2026-09-10,4500,MakeMyTrip
+Air India,DEL,BOM,2026-09-10,5200,Yatra
+Akasa Air,DEL,BOM,2026-09-10,4100,EaseMyTrip
+SpiceJet,DEL,BOM,2026-09-10,4350,Cleartrip
+IndiGo,DEL,BLR,2026-09-10,5800,MakeMyTrip
+Air India,DEL,BLR,2026-09-10,6200,Yatra
+Akasa Air,DEL,BLR,2026-09-10,5500,EaseMyTrip
+IndiGo,BOM,DEL,2026-09-11,4700,MakeMyTrip
+Air India,BOM,DEL,2026-09-11,5100,Yatra
+SpiceJet,BOM,DEL,2026-09-11,4300,Cleartrip
