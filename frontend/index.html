@@ -304,9 +304,8 @@
                         112.45
                     </div>
 
-                    <div class="kpi-change positive">
-                        ▲ 6.21%
-                        <span>vs last month</span>
+                    <div class="kpi-change" id="overallIndexChange">
+                        --
                     </div>
 
                     <div class="mini-chart">
@@ -314,6 +313,7 @@
                     </div>
 
                 </div>
+                
 
 
                 <div class="kpi-card">
@@ -329,15 +329,15 @@
                         </span>
 
                     </div>
-
                     <div class="kpi-value" id="domesticIndex">
-                        110.32
+                        --
+                    </div>
+                    <div class="kpi-change" id="domesticIndexChange">
+                       --
                     </div>
 
-                    <div class="kpi-change positive">
-                        ▲ 5.75%
-                        <span>vs last month</span>
-                    </div>
+                    
+                    
 
                     <div class="mini-chart green">
                         ▁▂▃▄▃▅▆▇
@@ -361,12 +361,11 @@
                     </div>
 
                     <div class="kpi-value" id="internationalIndex">
-                        118.91
+                        N/A
                     </div>
 
-                    <div class="kpi-change positive">
-                        ▲ 7.48%
-                        <span>vs last month</span>
+                    <div class="kpi-change">
+                       N/A
                     </div>
 
                     <div class="mini-chart purple">
@@ -389,10 +388,12 @@
                         </span>
 
                     </div>
-
-                    <div class="kpi-value">
-                        250+
+                    <div class="kpi-value" id="routesTracked">
+                        --
                     </div>
+
+
+                    
 
                     <div class="kpi-subtext">
                         Across India
@@ -709,33 +710,46 @@
         <!-- =========================
              OTHER PAGES
         ========================== -->
+<section id="price-index" class="page">
 
-        <section
-            id="price-index"
-            class="page">
+    <div class="card page-card">
 
-            <div class="card page-card">
+        <h2>Airfare Price Index</h2>
 
-                <h2>Airfare Price Index</h2>
+        <p>
+            Monitor the calculated airfare price index
+            across different periods and routes.
+        </p>
 
-                <p>
-                    Monitor the calculated airfare price index
-                    across different periods and routes.
-                </p>
+        <div class="large-index" id="priceIndexValue">
+            --
+        </div>
 
-                <div class="large-index">
-                    112.45
-                </div>
+        <p class="kpi-change" id="priceIndexChange">
+            --
+        </p>
 
-                <p class="positive">
-                    ▲ 6.21% compared with previous month
-                </p>
+    </div>
 
-            </div>
+    <div class="card page-card">
 
-        </section>
+        <h3>Airfare Price Index History</h3>
 
+        <p>
+            Historical movement of the calculated airfare
+            price index.
+        </p>
 
+        <canvas
+            id="priceIndexPageChart"
+            width="900"
+            height="350">
+        </canvas>
+
+    </div>
+
+</section>
+        
         <section
             id="search"
             class="page">

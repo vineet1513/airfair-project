@@ -132,21 +132,44 @@ function displayFareTable(data) {
 
 }
 
+async function loadFares() {
+
+    try {
+
+        const response = await fetch(
+            "http://127.0.0.1:5000/api/fares"
+        );
+
+        const data = await response.json();
+
+        console.log("Fare data received from backend:", data);
+
+        displayFareTable(data);
+
+    } catch (error) {
+
+        console.error(
+            "Error loading airfare data:",
+            error
+        );
+
+    }
+}
+
 
 /* =========================================
    INITIAL TABLE
 ========================================= */
-
-displayFareTable(airfareData);
+loadFares();
 
 
 /* =========================================
-   SEARCH FARES
+   SEARCH FARES - BACKEND
 ========================================= */
 
 searchBtn.addEventListener(
     "click",
-    function () {
+    async function () {
 
         const from =
             fromCity.options[
@@ -157,7 +180,6 @@ searchBtn.addEventListener(
             toCity.options[
                 toCity.selectedIndex
             ].text;
-
 
         const fromCode =
             fromCity.value;
@@ -175,7 +197,6 @@ searchBtn.addEventListener(
             );
 
             return;
-
         }
 
 
@@ -185,46 +206,51 @@ searchBtn.addEventListener(
             `${from} → ${to}`;
 
 
-        /*
-            For now we use mock data.
+        try {
 
-            Later:
+            /* Call backend API */
 
-            fetch(
-                `/api/fares?from=${fromCode}&to=${toCode}`
-            )
-        */
-
-
-        const filteredData =
-            airfareData.map(
-                flight => {
-
-                    return {
-                        ...flight,
-
-                        route:
-                            `${fromCode} → ${toCode}`
-                    };
-
-                }
+            const response = await fetch(
+                `http://127.0.0.1:5000/api/fares/search?from=${fromCode}&to=${toCode}`
             );
 
 
-        displayFareTable(filteredData);
+            const data =
+                await response.json();
 
 
-        /* Update timestamp */
+            console.log(
+                "Search results received:",
+                data
+            );
 
-        updateTimestamp();
+
+            /* Display results */
+
+            displayFareTable(data);
 
 
-        alert(
-            `Searching fares for ${from} → ${to}`
-        );
+            /* Update timestamp */
+
+            updateTimestamp();
+
+
+        } catch (error) {
+
+            console.error(
+                "Error searching fares:",
+                error
+            );
+
+            alert(
+                "Unable to fetch airfare data."
+            );
+
+        }
 
     }
 );
+
 
 
 /* =========================================
@@ -286,26 +312,44 @@ document
     .getElementById("refreshBtn")
     .addEventListener(
         "click",
-        function () {
+        async function () {
 
-            updateTimestamp();
+            try {
 
-            this.style.transform =
-                "rotate(360deg)";
+                // Show refresh animation
+                this.style.transform =
+                    "rotate(360deg)";
 
-            setTimeout(
-                () => {
+                // Reload latest airfare data
+                await loadFares();
 
-                    this.style.transform =
-                        "rotate(0deg)";
+                // Update timestamp
+                updateTimestamp();
 
-                },
-                500
-            );
+            } catch (error) {
+
+                console.error(
+                    "Refresh failed:",
+                    error
+                );
+
+            } finally {
+
+                // Reset animation
+                setTimeout(
+                    () => {
+
+                        this.style.transform =
+                            "rotate(0deg)";
+
+                    },
+                    500
+                );
+
+            }
 
         }
     );
-
 
 /* =========================================
    NAVIGATION
@@ -435,340 +479,109 @@ function goToDashboard() {
 }
 
 
-/* =========================================
-   PRICE TREND CHART
-========================================= */
 
-function drawPriceChart() {
+// =========================================
+// REAL AIRFARE PRICE TREND CHART
+// =========================================
+
+async function drawPriceChart() {
 
     const canvas =
-        document.getElementById(
-            "priceChart"
-        );
+        document.getElementById("priceChart");
 
     const ctx =
         canvas.getContext("2d");
 
+    try {
 
-    const width =
-        canvas.width;
-
-    const height =
-        canvas.height;
-
-
-    ctx.clearRect(
-        0,
-        0,
-        width,
-        height
-    );
-
-
-    const prices = [
-
-        4100,
-        4350,
-        4200,
-        4650,
-        4800,
-        5100,
-        4950,
-        5350,
-        5500
-
-    ];
-
-
-    const labels = [
-
-        "Dec",
-        "Jan",
-        "Feb",
-        "Mar",
-        "Apr",
-        "May",
-        "Jun",
-        "Jul",
-        "Aug"
-
-    ];
-
-
-    const padding = 45;
-
-
-    const max =
-        Math.max(...prices) + 300;
-
-    const min =
-        Math.min(...prices) - 300;
-
-
-    /* Grid */
-
-    ctx.strokeStyle =
-        "#e7edf4";
-
-    ctx.lineWidth = 1;
-
-
-    for (
-        let i = 0;
-        i < 5;
-        i++
-    ) {
-
-        const y =
-            padding +
-            i *
-            ((height -
-                padding * 2) / 4);
-
-
-        ctx.beginPath();
-
-        ctx.moveTo(
-            padding,
-            y
+        // Get real daily fare data
+        const response = await fetch(
+            "http://127.0.0.1:5000/api/fares/trend"
         );
 
-        ctx.lineTo(
-            width - padding,
-            y
+        const trendData =
+            await response.json();
+
+        console.log(
+            "Fare trend received:",
+            trendData
         );
 
-        ctx.stroke();
+        // Extract prices
+        const prices = trendData.map(
+            item => Number(
+                item["Average Fare"]
+            )
+        );
 
-    }
+        // Extract dates
+        const dates = trendData.map(
+            item => item["Date of Journey"]
+        );
 
+        const width = canvas.width;
+        const height = canvas.height;
 
-    /* Line */
+        ctx.clearRect(
+            0,
+            0,
+            width,
+            height
+        );
 
-    ctx.beginPath();
+        const padding = 45;
 
+        // Find min and max
+        const max =
+            Math.max(...prices) + 500;
 
-    prices.forEach(
-        (price, index) => {
+        const min =
+            Math.min(...prices) - 500;
 
-            const x =
-                padding +
-                index *
-                (
-                    (width -
-                        padding * 2)
-                    /
-                    (prices.length - 1)
-                );
+        // =====================================
+        // GRID
+        // =====================================
 
+        ctx.strokeStyle = "#e7edf4";
+        ctx.lineWidth = 1;
 
-            const y =
-                height -
-                padding -
-                (
-                    (price - min)
-                    /
-                    (max - min)
-                )
-                *
-                (
-                    height -
-                    padding * 2
-                );
-
-
-            if (index === 0) {
-
-                ctx.moveTo(
-                    x,
-                    y
-                );
-
-            } else {
-
-                ctx.lineTo(
-                    x,
-                    y
-                );
-
-            }
-
-        }
-    );
-
-
-    ctx.strokeStyle =
-        "#1677ff";
-
-    ctx.lineWidth = 3;
-
-    ctx.stroke();
-
-
-    /* Points */
-
-    prices.forEach(
-        (price, index) => {
-
-            const x =
-                padding +
-                index *
-                (
-                    (width -
-                        padding * 2)
-                    /
-                    (prices.length - 1)
-                );
-
+        for (
+            let i = 0;
+            i < 5;
+            i++
+        ) {
 
             const y =
-                height -
-                padding -
+                padding +
+                i *
                 (
-                    (price - min)
-                    /
-                    (max - min)
-                )
-                *
-                (
-                    height -
-                    padding * 2
+                    (height -
+                        padding * 2) / 4
                 );
-
 
             ctx.beginPath();
 
-            ctx.arc(
-                x,
-                y,
-                4,
-                0,
-                Math.PI * 2
+            ctx.moveTo(
+                padding,
+                y
             );
 
-
-            ctx.fillStyle =
-                "#ffffff";
-
-            ctx.fill();
-
-
-            ctx.strokeStyle =
-                "#1677ff";
-
-            ctx.lineWidth = 2;
+            ctx.lineTo(
+                width - padding,
+                y
+            );
 
             ctx.stroke();
-
-
-            /* Labels */
-
-            ctx.fillStyle =
-                "#718096";
-
-            ctx.font =
-                "11px Arial";
-
-            ctx.textAlign =
-                "center";
-
-
-            ctx.fillText(
-                labels[index],
-                x,
-                height - 15
-            );
-
         }
-    );
 
-}
-
-
-drawPriceChart();
-
-
-/* =========================================
-   INDEX COMPARISON CHART
-========================================= */
-
-function drawIndexChart() {
-
-    const canvas =
-        document.getElementById(
-            "indexChart"
-        );
-
-    const ctx =
-        canvas.getContext("2d");
-
-
-    const width =
-        canvas.width;
-
-    const height =
-        canvas.height;
-
-
-    ctx.clearRect(
-        0,
-        0,
-        width,
-        height
-    );
-
-
-    const data = {
-
-        overall: [
-            91,
-            95,
-            94,
-            98,
-            99,
-            106,
-            105,
-            110
-        ],
-
-        domestic: [
-            78,
-            81,
-            80,
-            83,
-            85,
-            90,
-            90,
-            94
-        ],
-
-        international: [
-            99,
-            104,
-            102,
-            108,
-            112,
-            120,
-            119,
-            128
-        ]
-
-    };
-
-
-    const padding = 40;
-
-
-    function drawLine(
-        values,
-        lineColor
-    ) {
+        // =====================================
+        // LINE
+        // =====================================
 
         ctx.beginPath();
 
-
-        values.forEach(
-            (value, index) => {
+        prices.forEach(
+            (price, index) => {
 
                 const x =
                     padding +
@@ -777,24 +590,22 @@ function drawIndexChart() {
                         (width -
                             padding * 2)
                         /
-                        (values.length - 1)
+                        (prices.length - 1)
                     );
-
 
                 const y =
                     height -
                     padding -
                     (
-                        (value - 70)
+                        (price - min)
                         /
-                        65
+                        (max - min)
                     )
                     *
                     (
                         height -
                         padding * 2
                     );
-
 
                 if (index === 0) {
 
@@ -809,222 +620,564 @@ function drawIndexChart() {
                         x,
                         y
                     );
-
                 }
 
             }
         );
 
+        ctx.strokeStyle = "#1677ff";
+        ctx.lineWidth = 3;
 
-        ctx.strokeStyle =
-            lineColor;
+        ctx.stroke();
 
+        // =====================================
+        // POINTS
+        // =====================================
+
+        prices.forEach(
+            (price, index) => {
+
+                const x =
+                    padding +
+                    index *
+                    (
+                        (width -
+                            padding * 2)
+                        /
+                        (prices.length - 1)
+                    );
+
+                const y =
+                    height -
+                    padding -
+                    (
+                        (price - min)
+                        /
+                        (max - min)
+                    )
+                    *
+                    (
+                        height -
+                        padding * 2
+                    );
+
+                ctx.beginPath();
+
+                ctx.arc(
+                    x,
+                    y,
+                    3,
+                    0,
+                    Math.PI * 2
+                );
+
+                ctx.fillStyle = "#ffffff";
+
+                ctx.fill();
+
+                ctx.strokeStyle = "#1677ff";
+
+                ctx.lineWidth = 2;
+
+                ctx.stroke();
+            }
+        );
+
+        // =====================================
+        // DATE LABELS
+        // =====================================
+
+        ctx.fillStyle = "#718096";
+
+        ctx.font = "10px Arial";
+
+        ctx.textAlign = "center";
+
+        // Show around 8 labels
+        const labelStep =
+            Math.ceil(
+                dates.length / 8
+            );
+
+        dates.forEach(
+            (date, index) => {
+
+                if (
+                    index % labelStep !== 0 &&
+                    index !== dates.length - 1
+                ) {
+                    return;
+                }
+
+                const x =
+                    padding +
+                    index *
+                    (
+                        (width -
+                            padding * 2)
+                        /
+                        (prices.length - 1)
+                    );
+
+                const formattedDate =
+                    new Date(date)
+                        .toLocaleDateString(
+                            "en-IN",
+                            {
+                                day: "2-digit",
+                                month: "short"
+                            }
+                        );
+
+                ctx.fillText(
+                    formattedDate,
+                    x,
+                    height - 15
+                );
+            }
+        );
+
+        console.log(
+            "Fare trend chart updated successfully."
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Error loading fare trend:",
+            error
+        );
+    }
+}
+
+
+// =========================================
+// LOAD FARE TREND CHART
+// =========================================
+
+drawPriceChart();
+
+
+
+/* =========================================
+   INDEX HISTORY CHART
+========================================= */
+
+async function drawIndexChart() {
+
+    const canvas =
+        document.getElementById("indexChart");
+
+    const ctx =
+        canvas.getContext("2d");
+
+    try {
+
+        // Get real index history from backend
+        const response = await fetch(
+            "http://127.0.0.1:5000/api/index/history"
+        );
+
+        const history = await response.json();
+
+        console.log(
+            "Index history received:",
+            history
+        );
+
+        // Extract index values
+        const values = history.map(
+            item => Number(
+                item["Airfare Price Index"]
+            )
+        );
+
+        // Extract dates
+        const dates = history.map(
+            item => item["Date of Journey"]
+        );
+
+        const width = canvas.width;
+        const height = canvas.height;
+
+        ctx.clearRect(
+            0,
+            0,
+            width,
+            height
+        );
+
+        const padding = 40;
+
+        // Find min and max
+        const max =
+            Math.max(...values) + 5;
+
+        const min =
+            Math.min(...values) - 5;
+
+        /* =====================================
+           GRID
+        ===================================== */
+
+        ctx.strokeStyle = "#e7edf4";
+        ctx.lineWidth = 1;
+
+        for (
+            let i = 0;
+            i < 5;
+            i++
+        ) {
+
+            const y =
+                padding +
+                i *
+                (
+                    (height -
+                        padding * 2) / 4
+                );
+
+            ctx.beginPath();
+
+            ctx.moveTo(
+                padding,
+                y
+            );
+
+            ctx.lineTo(
+                width - padding,
+                y
+            );
+
+            ctx.stroke();
+        }
+
+        /* =====================================
+           INDEX LINE
+        ===================================== */
+
+        ctx.beginPath();
+
+        values.forEach(
+            (value, index) => {
+
+                const x =
+                    padding +
+                    index *
+                    (
+                        (width -
+                            padding * 2)
+                        /
+                        (values.length - 1)
+                    );
+
+                const y =
+                    height -
+                    padding -
+                    (
+                        (value - min)
+                        /
+                        (max - min)
+                    )
+                    *
+                    (
+                        height -
+                        padding * 2
+                    );
+
+                if (index === 0) {
+
+                    ctx.moveTo(
+                        x,
+                        y
+                    );
+
+                } else {
+
+                    ctx.lineTo(
+                        x,
+                        y
+                    );
+                }
+            }
+        );
+
+        ctx.strokeStyle = "#1677ff";
         ctx.lineWidth = 2.5;
 
         ctx.stroke();
 
-    }
+        /* =====================================
+           POINTS
+        ===================================== */
 
+        values.forEach(
+            (value, index) => {
 
-    /* Grid */
+                const x =
+                    padding +
+                    index *
+                    (
+                        (width -
+                            padding * 2)
+                        /
+                        (values.length - 1)
+                    );
 
-    ctx.strokeStyle =
-        "#e7edf4";
+                const y =
+                    height -
+                    padding -
+                    (
+                        (value - min)
+                        /
+                        (max - min)
+                    )
+                    *
+                    (
+                        height -
+                        padding * 2
+                    );
 
-    ctx.lineWidth = 1;
+                ctx.beginPath();
 
+                ctx.arc(
+                    x,
+                    y,
+                    3,
+                    0,
+                    Math.PI * 2
+                );
 
-    for (
-        let i = 0;
-        i < 5;
-        i++
-    ) {
+                ctx.fillStyle = "#ffffff";
 
-        const y =
-            padding +
-            i *
-            (
-                (height -
-                    padding * 2)
-                / 4
-            );
+                ctx.fill();
 
+                ctx.strokeStyle = "#1677ff";
 
-        ctx.beginPath();
+                ctx.lineWidth = 2;
 
-        ctx.moveTo(
-            padding,
-            y
-        );
-
-        ctx.lineTo(
-            width - padding,
-            y
-        );
-
-        ctx.stroke();
-
-    }
-
-
-    drawLine(
-        data.overall,
-        "#1677ff"
-    );
-
-    drawLine(
-        data.domestic,
-        "#13a66a"
-    );
-
-    drawLine(
-        data.international,
-        "#8d54e9"
-    );
-
-}
-
-
-drawIndexChart();
-
-
-/* =========================================
-   ROUTE COMPARISON
-========================================= */
-
-const routes = [
-
-    {
-        route: "Delhi → Mumbai",
-        price: 4215
-    },
-
-    {
-        route: "Delhi → Bengaluru",
-        price: 3890
-    },
-
-    {
-        route: "Delhi → Kolkata",
-        price: 3520
-    },
-
-    {
-        route: "Mumbai → Bengaluru",
-        price: 3680
-    },
-
-    {
-        route: "Delhi → Chennai",
-        price: 4670
-    },
-
-    {
-        route: "Mumbai → Kolkata",
-        price: 4980
-    }
-
-];
-
-
-const routeComparison =
-    document.getElementById(
-        "routeComparison"
-    );
-
-
-routes.forEach(
-    route => {
-
-        const div =
-            document.createElement(
-                "div"
-            );
-
-
-        div.className =
-            "route-row";
-
-
-        div.innerHTML = `
-
-            <span>
-                ${route.route}
-            </span>
-
-            <strong>
-                ₹${route.price.toLocaleString("en-IN")}
-            </strong>
-
-        `;
-
-
-        routeComparison.appendChild(
-            div
-        );
-
-    }
-);
-
-
-/* =========================================
-   CSV DOWNLOAD
-========================================= */
-
-function downloadCSV() {
-
-    let csv =
-        "Airline,Route,Fare,Source,Captured\n";
-
-
-    airfareData.forEach(
-        flight => {
-
-            csv +=
-                `${flight.airline},` +
-                `${flight.route},` +
-                `${flight.fare},` +
-                `${flight.source},` +
-                `${flight.captured}\n`;
-
-        }
-    );
-
-
-    const blob =
-        new Blob(
-            [csv],
-            {
-                type: "text/csv"
+                ctx.stroke();
             }
         );
 
+        /* =====================================
+           DATE LABELS
+        ===================================== */
 
-    const url =
-        URL.createObjectURL(
-            blob
+        ctx.fillStyle = "#718096";
+
+        ctx.font = "10px Arial";
+
+        ctx.textAlign = "center";
+
+        const labelStep =
+            Math.ceil(
+                dates.length / 8
+            );
+
+        dates.forEach(
+            (date, index) => {
+
+                if (
+                    index % labelStep !== 0 &&
+                    index !== dates.length - 1
+                ) {
+                    return;
+                }
+
+                const x =
+                    padding +
+                    index *
+                    (
+                        (width -
+                            padding * 2)
+                        /
+                        (values.length - 1)
+                    );
+
+                const formattedDate =
+                    new Date(date)
+                        .toLocaleDateString(
+                            "en-IN",
+                            {
+                                day: "2-digit",
+                                month: "short"
+                            }
+                        );
+
+                ctx.fillText(
+                    formattedDate,
+                    x,
+                    height - 15
+                );
+            }
         );
 
-
-    const link =
-        document.createElement(
-            "a"
+        console.log(
+            "Index chart updated successfully."
         );
 
+    } catch (error) {
 
-    link.href = url;
+        console.error(
+            "Error loading index history:",
+            error
+        );
+    }
+}
 
-    link.download =
-        "airfare-data.csv";
 
+/* =========================================
+   LOAD INDEX CHART
+========================================= */
 
-    link.click();
+drawIndexChart();
 
+/* =========================================
+   ROUTE COMPARISON - BACKEND DATA
+========================================= */
 
-    URL.revokeObjectURL(
-        url
-    );
+async function loadRouteComparison() {
 
+    try {
+
+        const response = await fetch(
+            "http://127.0.0.1:5000/api/routes"
+        );
+
+        const routes = await response.json();
+
+        console.log("Route data received:", routes);
+
+        const routeComparison =
+            document.getElementById("routeComparison");
+
+        routeComparison.innerHTML = "";
+
+        routes.forEach(route => {
+
+            const div =
+                document.createElement("div");
+
+            div.className = "route-row";
+
+            div.innerHTML = `
+                <span>
+                    ${route.Route}
+                </span>
+
+                <strong>
+                    ₹${Number(route["Average Fare"])
+                        .toLocaleString("en-IN")}
+                </strong>
+            `;
+
+            routeComparison.appendChild(div);
+
+        });
+
+    } catch (error) {
+
+        console.error(
+            "Error loading route comparison:",
+            error
+        );
+
+    }
+
+}
+
+loadRouteComparison();
+/* =========================================
+   CSV DOWNLOAD
+========================================= */
+/* =========================================
+   CSV DOWNLOAD - BACKEND DATA
+========================================= */
+
+async function downloadCSV() {
+
+    try {
+
+        // Get actual airfare data from backend
+        const response = await fetch(
+            "http://127.0.0.1:5000/api/fares"
+        );
+
+        if (!response.ok) {
+            throw new Error("Failed to fetch airfare data");
+        }
+
+        const data = await response.json();
+
+        console.log("CSV data received:", data);
+
+        if (data.length === 0) {
+            alert("No airfare data available.");
+            return;
+        }
+
+        // CSV header
+        const headers = [
+            "Airline",
+            "Route",
+            "Fare",
+            "Source",
+            "Captured"
+        ];
+
+        let csv = headers.join(",") + "\n";
+
+        // Convert backend data to CSV
+        data.forEach(flight => {
+
+            csv +=
+                `"${flight.airline || ""}",` +
+                `"${flight.route || ""}",` +
+                `"${flight.fare || ""}",` +
+                `"${flight.source || ""}",` +
+                `"${flight.captured || ""}"\n`;
+
+        });
+
+        // Create CSV file
+        const blob = new Blob(
+            [csv],
+            {
+                type: "text/csv;charset=utf-8;"
+            }
+        );
+
+        // Create download URL
+        const url = URL.createObjectURL(blob);
+
+        // Create temporary link
+        const link = document.createElement("a");
+
+        link.href = url;
+        link.download = "airfare-data.csv";
+
+        // Start download
+        link.click();
+
+        // Clean URL
+        URL.revokeObjectURL(url);
+
+        console.log(
+            "CSV downloaded successfully."
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Error downloading CSV:",
+            error
+        );
+
+        alert(
+            "Unable to download airfare data."
+        );
+    }
 }
 
 
@@ -1049,20 +1202,337 @@ document
 
 
 /* =========================================
-   VIEW ALL
+   VIEW ALL - PAGINATION
 ========================================= */
 
-document
-    .getElementById(
-        "viewAllBtn"
-    )
-    .addEventListener(
+let allAirfareData = [];
+let currentPage = 1;
+
+const rowsPerPage = 100;
+
+
+/* -----------------------------------------
+   DISPLAY PAGINATED DATA
+----------------------------------------- */
+
+function displayPaginatedFares() {
+
+    const startIndex =
+        (currentPage - 1) * rowsPerPage;
+
+    const endIndex =
+        startIndex + rowsPerPage;
+
+    const pageData =
+        allAirfareData.slice(
+            startIndex,
+            endIndex
+        );
+
+    // Display only current page
+    displayFareTable(pageData);
+
+    // Update route title
+    routeTitle.textContent =
+        "All India Airfare Data";
+
+    // Create / update pagination
+    createPagination();
+}
+
+
+/* -----------------------------------------
+   CREATE PAGINATION
+----------------------------------------- */
+
+function createPagination() {
+
+    const totalRecords =
+        allAirfareData.length;
+
+    const totalPages =
+        Math.ceil(
+            totalRecords / rowsPerPage
+        );
+
+    // Find table
+    const table =
+        fareTable.closest("table");
+
+    if (!table) {
+        console.error(
+            "Fare table not found."
+        );
+        return;
+    }
+
+    // Remove old pagination
+    const oldPagination =
+        document.getElementById(
+            "farePagination"
+        );
+
+    if (oldPagination) {
+        oldPagination.remove();
+    }
+
+
+    // Pagination container
+    const pagination =
+        document.createElement("div");
+
+    pagination.id =
+        "farePagination";
+
+    pagination.style.display =
+        "flex";
+
+    pagination.style.justifyContent =
+        "space-between";
+
+    pagination.style.alignItems =
+        "center";
+
+    pagination.style.marginTop =
+        "20px";
+
+    pagination.style.padding =
+        "10px 5px";
+
+
+    // Record information
+    const info =
+        document.createElement("span");
+
+    const startRecord =
+        (currentPage - 1) *
+        rowsPerPage + 1;
+
+    const endRecord =
+        Math.min(
+            currentPage * rowsPerPage,
+            totalRecords
+        );
+
+    info.textContent =
+        `Showing ${startRecord}-${endRecord} of ${totalRecords.toLocaleString("en-IN")} records`;
+
+    info.style.fontSize =
+        "13px";
+
+    info.style.color =
+        "#718096";
+
+
+    // Button container
+    const buttons =
+        document.createElement("div");
+
+    buttons.style.display =
+        "flex";
+
+    buttons.style.gap =
+        "6px";
+
+
+    // Previous button
+    const previousBtn =
+        document.createElement("button");
+
+    previousBtn.textContent =
+        "← Previous";
+
+    previousBtn.disabled =
+        currentPage === 1;
+
+    previousBtn.style.padding =
+        "7px 12px";
+
+    previousBtn.style.cursor =
+        currentPage === 1
+            ? "not-allowed"
+            : "pointer";
+
+
+    previousBtn.addEventListener(
         "click",
         function () {
 
-            alert(
-                "Full airfare database will be displayed here."
-            );
+            if (currentPage > 1) {
+
+                currentPage--;
+
+                displayPaginatedFares();
+            }
+
+        }
+    );
+
+
+    // Page number
+    const pageNumber =
+        document.createElement("span");
+
+    pageNumber.textContent =
+        `Page ${currentPage} of ${totalPages}`;
+
+    pageNumber.style.padding =
+        "7px 12px";
+
+    pageNumber.style.fontSize =
+        "13px";
+
+    pageNumber.style.fontWeight =
+        "600";
+
+
+    // Next button
+    const nextBtn =
+        document.createElement("button");
+
+    nextBtn.textContent =
+        "Next →";
+
+    nextBtn.disabled =
+        currentPage === totalPages;
+
+    nextBtn.style.padding =
+        "7px 12px";
+
+    nextBtn.style.cursor =
+        currentPage === totalPages
+            ? "not-allowed"
+            : "pointer";
+
+
+    nextBtn.addEventListener(
+        "click",
+        function () {
+
+            if (
+                currentPage <
+                totalPages
+            ) {
+
+                currentPage++;
+
+                displayPaginatedFares();
+            }
+
+        }
+    );
+
+
+    // Add buttons
+    buttons.appendChild(
+        previousBtn
+    );
+
+    buttons.appendChild(
+        pageNumber
+    );
+
+    buttons.appendChild(
+        nextBtn
+    );
+
+
+    // Add everything
+    pagination.appendChild(
+        info
+    );
+
+    pagination.appendChild(
+        buttons
+    );
+
+
+    // Put pagination below table
+    table.insertAdjacentElement(
+        "afterend",
+        pagination
+    );
+}
+
+
+/* -----------------------------------------
+   VIEW ALL BUTTON
+----------------------------------------- */
+
+document
+    .getElementById("viewAllBtn")
+    .addEventListener(
+        "click",
+        async function () {
+
+            try {
+
+                // Show loading message
+                this.textContent =
+                    "Loading...";
+
+                // Get all airfare data
+                const response =
+                    await fetch(
+                        "http://127.0.0.1:5000/api/fares/all"
+                    );
+
+                if (!response.ok) {
+
+                    throw new Error(
+                        "Failed to fetch airfare data"
+                    );
+                }
+
+                allAirfareData =
+                    await response.json();
+
+                console.log(
+                    "All airfare data:",
+                    allAirfareData
+                );
+
+
+                if (
+                    allAirfareData.length === 0
+                ) {
+
+                    alert(
+                        "No airfare data available."
+                    );
+
+                    return;
+                }
+
+
+                // Start from page 1
+                currentPage = 1;
+
+
+                // Display first 100 records
+                displayPaginatedFares();
+
+
+                // Update timestamp
+                updateTimestamp();
+
+
+            } catch (error) {
+
+                console.error(
+                    "Error loading all fares:",
+                    error
+                );
+
+                alert(
+                    "Unable to load airfare data."
+                );
+
+            } finally {
+
+                this.textContent =
+                    "View All →";
+            }
 
         }
     );
@@ -1101,3 +1571,493 @@ function setDefaultDate() {
 
 
 setDefaultDate();
+// ==========================================
+// LOAD AIRFARE PRICE INDEX FROM BACKEND
+// ==========================================
+
+async function loadAirfareIndex() {
+
+    try {
+
+        const response = await fetch(
+            "http://127.0.0.1:5000/api/index"
+        );
+
+        const data = await response.json();
+
+        console.log(
+            "Airfare Index received:",
+            data
+        );
+
+
+        // ==========================================
+        // AIRFARE PRICE INDEX
+        // ==========================================
+
+        const overallIndex =
+            document.getElementById("overallIndex");
+
+        if (overallIndex) {
+
+            overallIndex.textContent =
+                data.overall;
+
+        }
+        // ==========================================
+// OVERALL INDEX CHANGE
+// ==========================================
+
+const overallChange =
+    document.getElementById(
+        "overallIndexChange"
+    );
+
+if (overallChange) {
+
+    const arrow =
+        data.change >= 0
+            ? "▲"
+            : "▼";
+
+    overallChange.innerHTML =
+        `${arrow} ${Math.abs(data.change)}% 
+        <span>vs previous day</span>`;
+
+    overallChange.classList.remove(
+        "positive",
+        "negative"
+    );
+
+    overallChange.classList.add(
+        data.change >= 0
+            ? "positive"
+            : "negative"
+    );
+
+}
+
+
+        // ==========================================
+        // DOMESTIC INDEX
+        // ==========================================
+
+        const domesticIndex =
+            document.getElementById("domesticIndex");
+
+        if (domesticIndex) {
+
+            domesticIndex.textContent =
+                data.overall;
+
+        }
+
+
+        // ==========================================
+        // DOMESTIC INDEX CHANGE
+        // ==========================================
+
+        const domesticChange =
+            document.getElementById(
+                "domesticIndexChange"
+            );
+
+        if (domesticChange) {
+
+            const arrow =
+                data.change >= 0
+                    ? "▲"
+                    : "▼";
+
+            domesticChange.textContent =
+                `${arrow} ${Math.abs(data.change)}% vs previous day`;
+
+
+            // Remove old class
+            domesticChange.classList.remove(
+                "positive",
+                "negative"
+            );
+
+
+            // Add correct class
+            domesticChange.classList.add(
+                data.change >= 0
+                    ? "positive"
+                    : "negative"
+            );
+
+        }
+
+    } catch (error) {
+
+        console.error(
+            "Error loading Airfare Index:",
+            error
+        );
+
+    }
+
+}
+
+loadAirfareIndex();
+// ==========================================
+// PRICE INDEX PAGE
+// ==========================================
+
+async function loadPriceIndexPage() {
+
+    try {
+
+        // Get current index
+        const indexResponse = await fetch(
+            "http://127.0.0.1:5000/api/index"
+        );
+
+        const indexData = await indexResponse.json();
+
+        console.log(
+            "Price Index Page Data:",
+            indexData
+        );
+
+        // ------------------------------
+        // CURRENT INDEX
+        // ------------------------------
+
+        const indexValue =
+            document.getElementById(
+                "priceIndexValue"
+            );
+
+        if (indexValue) {
+
+            indexValue.textContent =
+                indexData.overall;
+        }
+
+
+        // ------------------------------
+        // INDEX CHANGE
+        // ------------------------------
+
+        const indexChange =
+            document.getElementById(
+                "priceIndexChange"
+            );
+
+        if (indexChange) {
+
+            const arrow =
+                indexData.change >= 0
+                    ? "▲"
+                    : "▼";
+
+            indexChange.textContent =
+                `${arrow} ${Math.abs(indexData.change)}% vs previous day`;
+
+            indexChange.classList.remove(
+                "positive",
+                "negative"
+            );
+
+            indexChange.classList.add(
+                indexData.change >= 0
+                    ? "positive"
+                    : "negative"
+            );
+        }
+
+
+        // ------------------------------
+        // INDEX HISTORY
+        // ------------------------------
+
+        const historyResponse = await fetch(
+            "http://127.0.0.1:5000/api/index/history"
+        );
+
+        const historyData =
+            await historyResponse.json();
+
+        console.log(
+            "Index History:",
+            historyData
+        );
+
+        drawPriceIndexPageChart(
+            historyData
+        );
+
+    }
+
+    catch (error) {
+
+        console.error(
+            "Error loading Price Index page:",
+            error
+        );
+    }
+}
+function drawPriceIndexPageChart(data) {
+
+    const canvas =
+        document.getElementById(
+            "priceIndexPageChart"
+        );
+
+    if (!canvas) return;
+
+    const ctx =
+        canvas.getContext("2d");
+
+    const width =
+        canvas.width;
+
+    const height =
+        canvas.height;
+
+    ctx.clearRect(
+        0,
+        0,
+        width,
+        height
+    );
+
+
+    // --------------------------------
+    // PREPARE DATA
+    // --------------------------------
+
+    const values =
+        data.map(item =>
+            Number(
+                item["Airfare Price Index"]
+            )
+        );
+
+    const labels =
+        data.map(item =>
+            item["Date of Journey"]
+        );
+
+
+    if (!values.length) {
+
+        ctx.font = "16px Arial";
+
+        ctx.fillText(
+            "No index data available",
+            20,
+            40
+        );
+
+        return;
+    }
+
+
+    // --------------------------------
+    // GRAPH SETTINGS
+    // --------------------------------
+
+    const paddingLeft = 60;
+    const paddingRight = 20;
+    const paddingTop = 20;
+    const paddingBottom = 45;
+
+    const chartWidth =
+        width -
+        paddingLeft -
+        paddingRight;
+
+    const chartHeight =
+        height -
+        paddingTop -
+        paddingBottom;
+
+
+    const minValue =
+        Math.min(...values);
+
+    const maxValue =
+        Math.max(...values);
+
+    const range =
+        maxValue - minValue || 1;
+
+
+    // --------------------------------
+    // GRID
+    // --------------------------------
+
+    ctx.strokeStyle = "#e5e7eb";
+
+    ctx.lineWidth = 1;
+
+    for (let i = 0; i <= 5; i++) {
+
+        const y =
+            paddingTop +
+            (chartHeight / 5) * i;
+
+        ctx.beginPath();
+
+        ctx.moveTo(
+            paddingLeft,
+            y
+        );
+
+        ctx.lineTo(
+            width - paddingRight,
+            y
+        );
+
+        ctx.stroke();
+
+
+        const value =
+            maxValue -
+            (range / 5) * i;
+
+        ctx.fillStyle = "#6b7280";
+
+        ctx.font = "12px Arial";
+
+        ctx.fillText(
+            value.toFixed(1),
+            10,
+            y + 4
+        );
+    }
+
+
+    // --------------------------------
+    // LINE
+    // --------------------------------
+
+    ctx.beginPath();
+
+    values.forEach(
+        (value, index) => {
+
+            const x =
+                paddingLeft +
+                (index /
+                    (values.length - 1 || 1)
+                ) *
+                chartWidth;
+
+            const y =
+                paddingTop +
+                (
+                    (maxValue - value) /
+                    range
+                ) *
+                chartHeight;
+
+            if (index === 0) {
+
+                ctx.moveTo(
+                    x,
+                    y
+                );
+
+            } else {
+
+                ctx.lineTo(
+                    x,
+                    y
+                );
+            }
+        }
+    );
+
+    ctx.strokeStyle = "#2563eb";
+
+    ctx.lineWidth = 3;
+
+    ctx.stroke();
+
+
+    // --------------------------------
+    // X-AXIS LABELS
+    // --------------------------------
+
+    ctx.fillStyle = "#6b7280";
+
+    ctx.font = "11px Arial";
+
+    const labelCount =
+        Math.min(
+            6,
+            labels.length
+        );
+
+    for (
+        let i = 0;
+        i < labelCount;
+        i++
+    ) {
+
+        const index =
+            Math.floor(
+                i *
+                (labels.length - 1) /
+                (labelCount - 1 || 1)
+            );
+
+        const x =
+            paddingLeft +
+            (index /
+                (labels.length - 1 || 1)
+            ) *
+            chartWidth;
+
+        ctx.fillText(
+            labels[index],
+            x - 25,
+            height - 15
+        );
+    }
+}
+// ==========================================
+// LOAD ROUTE COUNT FROM BACKEND
+// ==========================================
+
+async function loadRouteCount() {
+
+    try {
+
+        const response = await fetch(
+            "http://127.0.0.1:5000/api/analysis"
+        );
+
+        const data = await response.json();
+
+        console.log(
+            "Route count received:",
+            data.total_routes
+        );
+
+        const routesElement =
+            document.getElementById("routesTracked");
+
+        if (routesElement) {
+
+            routesElement.textContent =
+                data.total_routes;
+
+        }
+
+    } catch (error) {
+
+        console.error(
+            "Error loading route count:",
+            error
+        );
+
+    }
+}
+
+loadRouteCount();
+loadPriceIndexPage();
