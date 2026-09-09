@@ -70,7 +70,7 @@ def get_fares():
     try:
 
         # Read raw dataset
-        df = pd.read_csv("../data/scraped_dataset.csv")
+        df = pd.read_csv("../data/Scraped_dataset.csv")
 
         # Clean Price
         df["Price"] = (
@@ -221,7 +221,7 @@ def search_fares():
 
         # Read dataset
         df = pd.read_csv(
-            "../data/scraped_dataset.csv"
+            "../data/Scraped_dataset.csv"
         )
 
         # Clean price
@@ -418,7 +418,7 @@ def get_fare_trend():
 
         # Read raw flight data
         df = pd.read_csv(
-            "../data/scraped_dataset.csv"
+            "../data/Scraped_dataset.csv"
         )
 
         # Clean price
@@ -502,7 +502,7 @@ def get_analysis():
 
         # Read raw flight data
         df = pd.read_csv(
-            "../data/scraped_dataset.csv"
+            "../data/Scraped_dataset.csv"
         )
 
         # Clean Price
@@ -689,7 +689,7 @@ def get_routes():
 
         # Read dataset
         df = pd.read_csv(
-            "../data/scraped_dataset.csv"
+            "../data/Scraped_dataset.csv"
         )
 
         # Clean price
@@ -804,7 +804,7 @@ def get_all_fares():
 
         # Read dataset
         df = pd.read_csv(
-            "../data/scraped_dataset.csv"
+            "../data/Scraped_dataset.csv"
         )
 
         # Clean Price
