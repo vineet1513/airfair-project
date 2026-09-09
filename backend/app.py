@@ -1,11 +1,11 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 import pandas as pd
-from scraper.live_source import get_live_fares
+from scraper.live_source import get_live_fares, get_fallback_fares
+
 app = Flask(__name__)
+
 CORS(app, resources={r"/api/*": {"origins": "*"}})
-
-
 # --------------------------------
 # Temporary airfare data
 # --------------------------------
@@ -932,18 +932,31 @@ def live_fares():
     destination = request.args.get("to", "BOM")
 
     try:
+
         data = get_live_fares(origin, destination)
 
         return jsonify({
             "success": True,
-            "source": "Live Fare Source",
+            "mode": "live",
+            "source": "RapidAPI Air Scraper",
             "count": len(data),
             "data": data
         })
 
     except Exception as e:
 
+        print("Live API unavailable:", e)
+
+        fallback = get_fallback_fares(
+            origin,
+            destination
+        )
+
         return jsonify({
-            "success": False,
-            "error": str(e)
-        }), 500
+            "success": True,
+            "mode": "fallback",
+            "source": "Demo / Cached Fare",
+            "count": len(fallback),
+            "message": "Live API temporarily unavailable. Showing cached demo fares.",
+            "data": fallback
+        })

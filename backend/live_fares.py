@@ -1,147 +1,155 @@
 import os
 import requests
-from datetime import date, timedelta
 from dotenv import load_dotenv
 
 load_dotenv()
 
-DUFFEL_TOKEN = os.getenv("DUFFEL_ACCESS_TOKEN")
+RAPIDAPI_KEY = os.getenv("RAPIDAPI_KEY")
 
-DUFFEL_URL = "https://api.duffel.com/air/offer_requests"
+URL = "https://sky-scrapper.p.rapidapi.com/api/v2/flights/searchFlights"
+
+HEADERS = {
+    "x-rapidapi-key": RAPIDAPI_KEY,
+    "x-rapidapi-host": "sky-scrapper.p.rapidapi.com"
+}
 
 
-def search_live_fares(origin, destination, days_ahead=1):
-    """
-    Search live flight offers using Duffel API.
-    """
+# ==========================================
+# LIVE FARE FUNCTION
+# ==========================================
 
-    if not DUFFEL_TOKEN:
-        raise Exception("DUFFEL_ACCESS_TOKEN not found in .env")
+def get_live_fares(origin="DEL", destination="BOM", date="2026-10-09"):
 
-    departure_date = date.today() + timedelta(days=days_ahead)
-
-    headers = {
-        "Authorization": f"Bearer {DUFFEL_TOKEN}",
-        "Content-Type": "application/json",
-        "Accept": "application/json",
-        "Duffel-Version": "v2"
+    params = {
+        "originSkyId": origin,
+        "destinationSkyId": destination,
+        "originEntityId": "95673498",
+        "destinationEntityId": "95673320",
+        "date": date,
+        "cabinClass": "economy",
+        "adults": "1",
+        "currency": "INR",
+        "market": "en-IN",
+        "countryCode": "IN"
     }
 
-    payload = {
-        "data": {
-            "cabin_class": "economy",
-
-            "slices": [
-                {
-                    "origin": origin.upper(),
-                    "destination": destination.upper(),
-                    "departure_date": departure_date.isoformat()
-                }
-            ],
-
-            "passengers": [
-                {
-                    "type": "adult"
-                }
-            ],
-
-            "max_connections": 1
-        }
-    }
-
-    response = requests.post(
-        DUFFEL_URL,
-        headers=headers,
-        json=payload,
-        timeout=60
+    response = requests.get(
+        URL,
+        headers=HEADERS,
+        params=params,
+        timeout=30
     )
 
-    if response.status_code != 200:
-        raise Exception(
-            f"Duffel API Error {response.status_code}: {response.text}"
-        )
+    response.raise_for_status()
 
     result = response.json()
 
-    offers = result.get("data", {}).get("offers", [])
+    fares = []
 
-    live_data = []
+    if result.get("status") is True:
 
-    for offer in offers:
-
-        total_amount = offer.get("total_amount")
-        currency = offer.get("total_currency")
-
-        slices = offer.get("slices", [])
-
-        if not slices:
-            continue
-
-        segments = slices[0].get("segments", [])
-
-        if not segments:
-            continue
-
-        segment = segments[0]
-
-        airline = segment.get(
-            "operating_carrier", {}
-        ).get("name", "Unknown")
-
-        airline_code = segment.get(
-            "operating_carrier", {}
-        ).get("iata_code", "")
-
-        flight_number = segment.get(
-            "operating_carrier_flight_number",
-            ""
+        itineraries = (
+            result
+            .get("data", {})
+            .get("itineraries", [])
         )
 
-        departure_time = segment.get(
-            "departing_at",
-            ""
-        )
+        for itinerary in itineraries:
 
-        arrival_time = segment.get(
-            "arriving_at",
-            ""
-        )
+            price = itinerary.get("price", {})
+            legs = itinerary.get("legs", [])
 
-        live_data.append({
+            if not legs:
+                continue
 
-            "timestamp": date.today().isoformat(),
+            leg = legs[0]
 
-            "origin": origin.upper(),
+            carriers = (
+                leg
+                .get("carriers", {})
+                .get("marketing", [])
+            )
 
-            "destination": destination.upper(),
+            airline = (
+                carriers[0].get("name")
+                if carriers
+                else "Unknown"
+            )
 
-            "airline": airline,
+            segments = leg.get("segments", [])
 
-            "airline_code": airline_code,
+            flight_number = (
+                segments[0].get("flightNumber")
+                if segments
+                else "Unknown"
+            )
 
-            "flight": flight_number,
+            fares.append({
+                "airline": airline,
+                "flightNumber": flight_number,
+                "from": leg.get("origin", {}).get("displayCode"),
+                "to": leg.get("destination", {}).get("displayCode"),
+                "fare": price.get("raw"),
+                "fareFormatted": price.get("formatted"),
+                "currency": "INR",
+                "durationMinutes": leg.get("durationInMinutes"),
+                "stops": leg.get("stopCount"),
+                "departure": leg.get("departure"),
+                "arrival": leg.get("arrival"),
+                "source": "RapidAPI Air Scraper"
+            })
 
-            "departure_date": departure_date.isoformat(),
+    return fares
 
-            "advance_window": f"T+{days_ahead}",
 
-            "fare_class": "ECONOMY",
 
-            "base_fare": None,
+# ==========================================
+# FALLBACK FARES
+# ==========================================
 
-            "taxes": None,
+def get_fallback_fares(origin="DEL", destination="BOM"):
 
-            "total_fare": float(total_amount)
-            if total_amount else None,
-
-            "currency": currency,
-
-            "departure_time": departure_time,
-
-            "arrival_time": arrival_time,
-
-            "source": "Duffel Live API"
-
-        })
-
-    return live_data
+    return [
+        {
+            "airline": "IndiGo",
+            "flightNumber": "6E-204",
+            "from": origin,
+            "to": destination,
+            "fare": 4215,
+            "fareFormatted": "₹4,215",
+            "currency": "INR",
+            "durationMinutes": 135,
+            "stops": 0,
+            "departure": "10:20",
+            "arrival": "12:35",
+            "source": "Demo / Cached Fare"
+        },
+        {
+            "airline": "Air India",
+            "flightNumber": "AI-865",
+            "from": origin,
+            "to": destination,
+            "fare": 4890,
+            "fareFormatted": "₹4,890",
+            "currency": "INR",
+            "durationMinutes": 145,
+            "stops": 0,
+            "departure": "11:10",
+            "arrival": "13:35",
+            "source": "Demo / Cached Fare"
+        },
+        {
+            "airline": "SpiceJet",
+            "flightNumber": "SG-8152",
+            "from": origin,
+            "to": destination,
+            "fare": 4150,
+            "fareFormatted": "₹4,150",
+            "currency": "INR",
+            "durationMinutes": 140,
+            "stops": 0,
+            "departure": "14:20",
+            "arrival": "16:40",
+            "source": "Demo / Cached Fare"
+        }
+    ]

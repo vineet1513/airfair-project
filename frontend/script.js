@@ -137,7 +137,7 @@ async function loadFares() {
     try {
 
         const response = await fetch(
-            "http://127.0.0.1:5000/api/fares"
+            "http://127.0.0.1:8000/api/fares"
         );
 
         const data = await response.json();
@@ -211,7 +211,7 @@ searchBtn.addEventListener(
             /* Call backend API */
 
             const response = await fetch(
-                `http://127.0.0.1:5000/api/fares/search?from=${fromCode}&to=${toCode}`
+                `http://127.0.0.1:8000/api/fares/search?from=${fromCode}&to=${toCode}`
             );
 
 
@@ -496,7 +496,7 @@ async function drawPriceChart() {
 
         // Get real daily fare data
         const response = await fetch(
-            "http://127.0.0.1:5000/api/fares/trend"
+            "http://127.0.0.1:8000/api/fares/trend"
         );
 
         const trendData =
@@ -775,7 +775,7 @@ async function drawIndexChart() {
 
         // Get real index history from backend
         const response = await fetch(
-            "http://127.0.0.1:5000/api/index/history"
+            "http://127.0.0.1:8000/api/index/history"
         );
 
         const history = await response.json();
@@ -1042,7 +1042,7 @@ async function loadRouteComparison() {
     try {
 
         const response = await fetch(
-            "http://127.0.0.1:5000/api/routes"
+            "http://127.0.0.1:8000/api/routes"
         );
 
         const routes = await response.json();
@@ -1101,7 +1101,7 @@ async function downloadCSV() {
 
         // Get actual airfare data from backend
         const response = await fetch(
-            "http://127.0.0.1:5000/api/fares"
+            "http://127.0.0.1:8000/api/fares"
         );
 
         if (!response.ok) {
@@ -1474,7 +1474,7 @@ document
                 // Get all airfare data
                 const response =
                     await fetch(
-                        "http://127.0.0.1:5000/api/fares/all"
+                        "http://127.0.0.1:8000/api/fares/all"
                     );
 
                 if (!response.ok) {
@@ -1580,7 +1580,7 @@ async function loadAirfareIndex() {
     try {
 
         const response = await fetch(
-            "http://127.0.0.1:5000/api/index"
+            "http://127.0.0.1:8000/api/index"
         );
 
         const data = await response.json();
@@ -1711,7 +1711,7 @@ async function loadPriceIndexPage() {
 
         // Get current index
         const indexResponse = await fetch(
-            "http://127.0.0.1:5000/api/index"
+            "http://127.0.0.1:8000/api/index"
         );
 
         const indexData = await indexResponse.json();
@@ -1774,7 +1774,7 @@ async function loadPriceIndexPage() {
         // ------------------------------
 
         const historyResponse = await fetch(
-            "http://127.0.0.1:5000/api/index/history"
+            "http://127.0.0.1:8000/api/index/history"
         );
 
         const historyData =
@@ -2029,7 +2029,7 @@ async function loadRouteCount() {
     try {
 
         const response = await fetch(
-            "http://127.0.0.1:5000/api/analysis"
+            "http://127.0.0.1:8000/api/analysis"
         );
 
         const data = await response.json();
@@ -2058,6 +2058,199 @@ async function loadRouteCount() {
 
     }
 }
+// ==========================================
+// LIVE FARES
+// ==========================================
+async function loadLiveFares() {
+
+    const liveFareBox =
+        document.getElementById("liveFareBox");
+
+    if (!liveFareBox) {
+        console.error("Live fare box not found.");
+        return;
+    }
+
+    try {
+
+        liveFareBox.innerHTML = `
+            <p>🔄 Loading fares...</p>
+        `;
+
+        const response = await fetch(
+            "http://127.0.0.1:8000/api/live-fares?from=DEL&to=BOM"
+        );
+
+        const result = await response.json();
+
+        console.log("Fare result:", result);
+
+        // =====================================
+        // FALLBACK / LIVE MESSAGE
+        // =====================================
+
+        if (result.mode === "fallback") {
+
+            liveFareBox.innerHTML = `
+                <div style="
+                    padding:15px;
+                    margin-bottom:15px;
+                    border-radius:10px;
+                    background:#fff8e1;
+                    border:1px solid #f6c343;
+                ">
+                    <strong>🟡 Demo / Cached Fare Data</strong>
+
+                    <p style="margin:8px 0 0;">
+                        Live API is temporarily unavailable.
+                        Showing cached fares for demonstration.
+                    </p>
+                </div>
+            `;
+
+        } else {
+
+            liveFareBox.innerHTML = `
+                <div style="
+                    padding:15px;
+                    margin-bottom:15px;
+                    border-radius:10px;
+                    background:#e8f5e9;
+                    border:1px solid #81c784;
+                ">
+                    <strong>🟢 Live Fare Data</strong>
+
+                    <p style="margin:8px 0 0;">
+                        Fare data received from live API.
+                    </p>
+                </div>
+            `;
+        }
+
+        // =====================================
+        // NO DATA
+        // =====================================
+
+        if (!result.data || result.data.length === 0) {
+
+            liveFareBox.innerHTML += `
+                <p>⚠️ No flights found.</p>
+            `;
+
+            return;
+        }
+
+        // =====================================
+        // DISPLAY FLIGHTS
+        // =====================================
+
+        result.data.forEach(flight => {
+
+            const fareCard =
+                document.createElement("div");
+
+            fareCard.style.cssText = `
+                padding:15px;
+                margin:10px 0;
+                border:1px solid #e2e8f0;
+                border-radius:10px;
+                background:#ffffff;
+            `;
+
+            fareCard.innerHTML = `
+
+                <div style="
+                    display:flex;
+                    justify-content:space-between;
+                    align-items:center;
+                ">
+
+                    <strong style="font-size:17px;">
+                        ✈️ ${flight.airline}
+                    </strong>
+
+                    <strong style="font-size:18px;">
+                        ${flight.fareFormatted ||
+                        "₹" + Number(flight.fare)
+                        .toLocaleString("en-IN")}
+                    </strong>
+
+                </div>
+
+                <p style="margin:8px 0;">
+                    <strong>
+                        ${flight.flightNumber}
+                    </strong>
+                    &nbsp; | &nbsp;
+                    ${flight.from} → ${flight.to}
+                </p>
+
+                <p style="margin:5px 0;">
+                    🛫 Departure:
+                    ${flight.departure || "N/A"}
+                </p>
+
+                <p style="margin:5px 0;">
+                    🛬 Arrival:
+                    ${flight.arrival || "N/A"}
+                </p>
+
+                <p style="margin:5px 0;">
+                    ⏱ Duration:
+                    ${flight.durationMinutes || "N/A"} minutes
+                </p>
+
+                <p style="margin:5px 0;">
+                    🛑 Stops:
+                    ${flight.stops ?? "N/A"}
+                </p>
+
+                <small style="color:#718096;">
+                    Source: ${flight.source || "Fare API"}
+                </small>
+
+            `;
+
+            liveFareBox.appendChild(fareCard);
+
+        });
+
+        console.log("Fares displayed successfully.");
+
+    } catch (error) {
+
+        console.error("Error loading fares:", error);
+
+        liveFareBox.innerHTML = `
+            <div style="
+                padding:15px;
+                border-radius:10px;
+                background:#fff3f3;
+                border:1px solid #ffcccc;
+            ">
+                <strong>🔴 Unable to load fares</strong>
+
+                <p style="margin:8px 0 0;">
+                    Please try again later.
+                </p>
+
+                <small>
+                    Historical airfare data remains available.
+                </small>
+            </div>
+        `;
+    }
+}
+
+
+// ==========================================
+// START LIVE FARES
+// ==========================================
+
+loadLiveFares();
+
+
+
 
 loadRouteCount();
 loadPriceIndexPage();
