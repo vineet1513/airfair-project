@@ -913,11 +913,13 @@ def get_all_fares():
         )
 
         # Convert to JSON
-        data = result.to_dict(
+        result=result.head(100)
+
+        result = result.to_dict(
             orient="records"
         )
-
-        return jsonify(data)
+        return jsonify(result)
+        
 
     except Exception as e:
 

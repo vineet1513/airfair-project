@@ -1,7 +1,7 @@
 /* =========================================
    AIRFARE PROJECT - FRONTEND JAVASCRIPT
 ========================================= */
-
+const API_BASE_URL = "https://airfair-project.onrender.com";
 
 /* =========================================
    MOCK DATA
@@ -136,8 +136,8 @@ async function loadFares() {
 
     try {
 
-        const response = await fetch(
-            "http://127.0.0.1:8000/api/fares"
+       const response = await fetch(
+          `${API_BASE_URL}/api/fares`
         );
 
         const data = await response.json();
@@ -160,7 +160,6 @@ async function loadFares() {
 /* =========================================
    INITIAL TABLE
 ========================================= */
-loadFares();
 
 
 /* =========================================
@@ -210,10 +209,9 @@ searchBtn.addEventListener(
 
             /* Call backend API */
 
-            const response = await fetch(
-                `http://127.0.0.1:8000/api/fares/search?from=${fromCode}&to=${toCode}`
-            );
-
+const response = await fetch(
+    `${API_BASE_URL}/api/fares/search?from=${fromCode}&to=${toCode}`
+);
 
             const data =
                 await response.json();
@@ -496,8 +494,8 @@ async function drawPriceChart() {
 
         // Get real daily fare data
         const response = await fetch(
-            "http://127.0.0.1:8000/api/fares/trend"
-        );
+    `${API_BASE_URL}/api/fares/trend`
+);
 
         const trendData =
             await response.json();
@@ -755,8 +753,6 @@ async function drawPriceChart() {
 // LOAD FARE TREND CHART
 // =========================================
 
-drawPriceChart();
-
 
 
 /* =========================================
@@ -775,7 +771,7 @@ async function drawIndexChart() {
 
         // Get real index history from backend
         const response = await fetch(
-            "http://127.0.0.1:8000/api/index/history"
+            `${API_BASE_URL}/api/index/history`
         );
 
         const history = await response.json();
@@ -1031,7 +1027,7 @@ async function drawIndexChart() {
    LOAD INDEX CHART
 ========================================= */
 
-drawIndexChart();
+
 
 /* =========================================
    ROUTE COMPARISON - BACKEND DATA
@@ -1042,7 +1038,7 @@ async function loadRouteComparison() {
     try {
 
         const response = await fetch(
-            "http://127.0.0.1:8000/api/routes"
+            `${API_BASE_URL}/api/routes`
         );
 
         const routes = await response.json();
@@ -1087,7 +1083,7 @@ async function loadRouteComparison() {
 
 }
 
-loadRouteComparison();
+
 /* =========================================
    CSV DOWNLOAD
 ========================================= */
@@ -1101,7 +1097,7 @@ async function downloadCSV() {
 
         // Get actual airfare data from backend
         const response = await fetch(
-            "http://127.0.0.1:8000/api/fares"
+            `${API_BASE_URL}/api/fares`
         );
 
         if (!response.ok) {
@@ -1474,7 +1470,7 @@ document
                 // Get all airfare data
                 const response =
                     await fetch(
-                        "http://127.0.0.1:8000/api/fares/all"
+                        `${API_BASE_URL}/api/fares/all`
                     );
 
                 if (!response.ok) {
@@ -1580,7 +1576,7 @@ async function loadAirfareIndex() {
     try {
 
         const response = await fetch(
-            "http://127.0.0.1:8000/api/index"
+            `${API_BASE_URL}/api/index`
         );
 
         const data = await response.json();
@@ -1700,7 +1696,7 @@ if (overallChange) {
 
 }
 
-loadAirfareIndex();
+
 // ==========================================
 // PRICE INDEX PAGE
 // ==========================================
@@ -1711,7 +1707,7 @@ async function loadPriceIndexPage() {
 
         // Get current index
         const indexResponse = await fetch(
-            "http://127.0.0.1:8000/api/index"
+            `${API_BASE_URL}/api/index`
         );
 
         const indexData = await indexResponse.json();
@@ -1774,7 +1770,7 @@ async function loadPriceIndexPage() {
         // ------------------------------
 
         const historyResponse = await fetch(
-            "http://127.0.0.1:8000/api/index/history"
+            `${API_BASE_URL}/api/index/history`
         );
 
         const historyData =
@@ -2029,7 +2025,7 @@ async function loadRouteCount() {
     try {
 
         const response = await fetch(
-            "http://127.0.0.1:8000/api/analysis"
+            `${API_BASE_URL}/api/analysis`
         );
 
         const data = await response.json();
@@ -2078,8 +2074,8 @@ async function loadLiveFares() {
         `;
 
         const response = await fetch(
-            "http://127.0.0.1:8000/api/live-fares?from=DEL&to=BOM"
-        );
+    `${API_BASE_URL}/api/live-fares?from=DEL&to=BOM`
+);
 
         const result = await response.json();
 
@@ -2244,13 +2240,31 @@ async function loadLiveFares() {
 
 
 // ==========================================
-// START LIVE FARES
+// START DASHBOARD DATA
 // ==========================================
 
-loadLiveFares();
+async function initDashboard() {
 
+    console.log("Starting dashboard data loading...");
 
+    await loadFares();
 
+    await drawPriceChart();
 
-loadRouteCount();
-loadPriceIndexPage();
+    await drawIndexChart();
+
+    await loadRouteComparison();
+
+    await loadAirfareIndex();
+
+    await loadPriceIndexPage();
+
+    await loadRouteCount();
+
+    await loadLiveFares();
+
+    console.log("Dashboard data loading completed.");
+
+}
+
+initDashboard();
